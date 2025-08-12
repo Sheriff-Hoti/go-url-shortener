@@ -7,5 +7,7 @@ pkgs.mkShell {
     pkgs.templ
     pkgs.tailwindcss_4
     pkgs.air
+    pkgs.sqlite
+    pkgs.sqlc
   ];
 }

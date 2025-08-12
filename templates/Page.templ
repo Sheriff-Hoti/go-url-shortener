@@ -9,20 +9,39 @@ templ Page() {
     <title>GO Url Shortener</title>
     <link rel="stylesheet" href="/assets/css/output.css" />
     <script src="/assets/js/htmx.min.js"></script>
+    <script>
+        htmx.config.responseHandling = [
+            {code:"204", swap: false},              // No Content
+            {code:"[23]..", swap: true},            // 2xx & 3xx responses
+            {code:"4..", swap: true, error:true},   // ✅ Now 4xx will swap content
+            {code:"5..", swap: false, error:true},  // Keep 5xx as non-swap errors
+            {code:".*", swap: false}                // Catch-all
+        ];
+    </script>
 </head>
 
 <body class="grid min-h-screen place-items-center bg-slate-800 text-gray-200">
-    <div class="flex flex-col items-center justify-center space-y-4">
+    <form 
+        class="flex flex-col items-center justify-center space-y-4"
+        method="POST"
+        hx-post="/shorten"
+        hx-target="#result"
+        hx-swap="outerHTML"
+        id="urlForm"
+    >
         <h1 class="text-3xl font-bold">GO Url Shortener</h1>
-    <label for="url" class="text-lg font-semibold">Enter URL to shorten:</label>
-    <input id="url" name="url" type="text" placeholder="https://example.com" hx-post="/shorten" hx-target="#result"
-        hx-swap="outer"
-        class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm
-        focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]
-        aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"></input>
-        <button hx-post="/shorten" hx-target="#result" hx-swap="outer"
-            class="p-4 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90">Shorten</button>
-    </div>
+        <label for="url" class="text-lg font-semibold">Enter URL to shorten:</label>
+        <input id="url" name="url" type="text" placeholder="https://example.com"
+            class="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm
+            focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]
+            aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"/>
+        <button hx-post="/shorten" hx-swap="outer" type="submit"
+            class="p-4 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-primary text-primary-foreground shadow-xs hover:bg-primary/90">
+            Shorten
+        </button>
+    </form>
+    <div id="result" class="text-lg font-semibold"></div>
+
 </body>
 
 </html>
