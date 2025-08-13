@@ -2,6 +2,10 @@
 SELECT * FROM urls
 WHERE original_url = ? LIMIT 1;
 
+-- name: GetUrlByShortenedUrl :one
+SELECT * FROM urls
+WHERE shortened_url = ? LIMIT 1;
+
 -- name: ListUrls :many
 SELECT * FROM urls
 ORDER BY original_url ASC;

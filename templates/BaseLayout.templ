@@ -1,0 +1,25 @@
+package templates
+
+templ BaseLayout() {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<title>GO Url Shortener</title>
+			<link rel="stylesheet" href="/assets/css/output.css"/>
+			<script src="/assets/js/htmx.min.js"></script>
+			<script>
+				htmx.config.responseHandling = [
+					{code:"204", swap: false},              // No Content
+					{code:"[23]..", swap: true},            // 2xx & 3xx responses
+					{code:"4..", swap: true, error:true},   // ✅ Now 4xx will swap content
+					{code:"5..", swap: false, error:true},  // Keep 5xx as non-swap errors
+					{code:".*", swap: false}                // Catch-all
+				];
+    		</script>
+		</head>
+		<body class="grid min-h-screen place-items-center bg-slate-800 text-gray-200">
+			{ children... }
+		</body>
+	</html>
+}

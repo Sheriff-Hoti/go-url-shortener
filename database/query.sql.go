@@ -52,6 +52,18 @@ func (q *Queries) GetUrl(ctx context.Context, originalUrl string) (Url, error) {
 	return i, err
 }
 
+const getUrlByShortenedUrl = `-- name: GetUrlByShortenedUrl :one
+SELECT original_url, shortened_url FROM urls
+WHERE shortened_url = ? LIMIT 1
+`
+
+func (q *Queries) GetUrlByShortenedUrl(ctx context.Context, shortenedUrl string) (Url, error) {
+	row := q.db.QueryRowContext(ctx, getUrlByShortenedUrl, shortenedUrl)
+	var i Url
+	err := row.Scan(&i.OriginalUrl, &i.ShortenedUrl)
+	return i, err
+}
+
 const listUrls = `-- name: ListUrls :many
 SELECT original_url, shortened_url FROM urls
 ORDER BY original_url ASC

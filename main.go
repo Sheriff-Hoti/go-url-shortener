@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -17,6 +18,8 @@ import (
 	templ "github.com/a-h/templ"
 	_ "github.com/glebarez/go-sqlite"
 )
+
+const baseUrl = "http://localhost:3000/"
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const (
@@ -72,15 +75,32 @@ func main() {
 	}
 
 	queries := database.New(db)
-	res, eerror := queries.GetUrl(ctx, "https://example.com")
-	fmt.Printf("res: %v", res)
-	fmt.Printf("error: %v", eerror)
 
 	router := http.NewServeMux()
 
-	component := templates.Page()
-	router.Handle("/", templ.Handler(component))
+	urlForm := templates.UrlForm()
+
+	router.Handle("/", templ.Handler(urlForm))
 	router.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("assets"))))
+	router.HandleFunc("/{id}", func(w http.ResponseWriter, r *http.Request) {
+
+		res, err := queries.GetUrlByShortenedUrl(ctx, r.PathValue("id"))
+
+		if errors.Is(err, sql.ErrNoRows) {
+			// URL not found return 404
+			w.WriteHeader(http.StatusNotFound)
+			templates.Error404().Render(r.Context(), w)
+			return
+		}
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			templates.Error404().Render(r.Context(), w)
+			return
+		}
+
+		http.Redirect(w, r, res.OriginalUrl, http.StatusFound)
+	})
 	router.HandleFunc("POST /shorten", func(w http.ResponseWriter, r *http.Request) {
 
 		// Parse form data
@@ -95,14 +115,13 @@ func main() {
 			templates.Result("Missing url", true).Render(r.Context(), w)
 			return
 		}
-
-		if !urlRegex.MatchString(originalURL) {
+		if _, err := url.ParseRequestURI(originalURL); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			templates.Result("Invalid URL format. Please use http:// or https://", true).Render(r.Context(), w)
 			return
 		}
 
-		res, err := queries.GetUrl(ctx, "https://example.com")
+		res, err := queries.GetUrl(ctx, originalURL)
 
 		if errors.Is(err, sql.ErrNoRows) {
 			// URL not found, proceed to create a new shortened URL
@@ -111,7 +130,7 @@ func main() {
 				OriginalUrl:  originalURL,
 				ShortenedUrl: shortenedURL,
 			})
-			msg := fmt.Sprintf("URL '%s' shortened successfully!", shortenedURL)
+			msg := fmt.Sprintf("URL '%s%s' shortened successfully!", baseUrl, shortenedURL)
 			templates.Result(msg, false).Render(r.Context(), w)
 			return
 		}
@@ -124,7 +143,7 @@ func main() {
 
 		if res.OriginalUrl == originalURL {
 			// URL already exists, return the existing shortened URL
-			msg := fmt.Sprintf("URL already exists: %s", res.ShortenedUrl)
+			msg := fmt.Sprintf("URL already shortened: '%s%s'", baseUrl, res.ShortenedUrl)
 			templates.Result(msg, false).Render(r.Context(), w)
 			return
 		}

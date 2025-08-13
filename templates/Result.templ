@@ -1,14 +1,13 @@
 package templates
 
 templ Result(message string, isError bool) {
-    if isError {
-        <div id="result" class="bg-red-500 text-white p-4 rounded">
-            {message}
-        </div>
-        }else{
-   
-        <div id="result" class="bg-green-500 text-white p-4 rounded">
-            {message}
-        </div>
-    }
+	if isError {
+		<div id="result" class="bg-red-500 text-white p-4 rounded">
+			{ message }
+		</div>
+	} else {
+		<div id="result" class="bg-green-500 text-white p-4 rounded">
+			{ message }
+		</div>
+	}
 }
